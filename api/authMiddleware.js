@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { UnauthorizedError, ForbiddenError } = require('../errors');
+const { UnauthorizedError, ForbiddenError } = require('../errors/AppError');
 
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
@@ -20,37 +20,35 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-const requireRole = (...roles) => {
+const requireRole = (allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return next(new UnauthorizedError('Authentication required'));
+      return next(new UnauthorizedError('User not authenticated'));
     }
 
-    if (!roles.includes(req.user.role)) {
-      return next(new ForbiddenError(`Required role: ${roles.join(', ')}`));
+    if (!allowedRoles.includes(req.user.role)) {
+      return next(new ForbiddenError(`Required roles: ${allowedRoles.join(', ')}`));
     }
 
     next();
   };
 };
 
-const rateLimitByUser = (store) => {
-  return (req, res, next) => {
-    const key = `rate:${req.user?.id || req.ip}`;
-    store.incr(key, (err, count) => {
-      if (err) return next(err);
-      
-      if (count === 1) {
-        store.expire(key, 60);
-      }
-      
-      if (count > 100) {
-        return next(new ForbiddenError('Rate limit exceeded'));
-      }
-      
-      next();
-    });
-  };
+const rateLimitByUser = (req, res, next) => {
+  const key = `ratelimit:${req.user?.id || req.ip}`;
+  const limit = req.user?.id ? 100 : 10;
+  
+  req.redis.incr(key, (err, count) => {
+    if (count === 1) {
+      req.redis.expire(key, 3600);
+    }
+    
+    if (count > limit) {
+      return next(new ForbiddenError('Rate limit exceeded'));
+    }
+    
+    next();
+  });
 };
 
 module.exports = { verifyToken, requireRole, rateLimitByUser };
