@@ -1,16 +1,21 @@
 # express-api-starter
 
-A minimal, production-ready Express.js API template with essential middleware, error handling, and request validation built-in.
+A lightweight, production-ready Express.js API template with built-in middleware, error handling, and environment configuration.
 
 ## Features
 
-- Express.js with modern async/await patterns
-- Request validation with Joi
-- Structured error handling
-- CORS and compression middleware
-- Environment configuration with dotenv
-- Request logging with Morgan
-- ESLint configuration
+- Express.js server setup with best practices
+- Environment variable management with dotenv
+- CORS and request logging middleware
+- Global error handling middleware
+- Health check endpoint
+- Request validation utilities
+- Modular route structure
+
+## Prerequisites
+
+- Node.js 16+
+- npm or yarn
 
 ## Installation
 
@@ -20,41 +25,44 @@ cd express-api-starter
 npm install
 ```
 
-## Quick Start
+## Setup
 
+1. Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
+```
+
+2. Update environment variables in `.env`
+
+## Usage
+
+Start the development server:
+```bash
 npm run dev
 ```
 
-The server runs on `http://localhost:3000` by default.
-
-## Usage Example
-
-```javascript
-const { Router } = require('express');
-const { validateRequest } = require('../middleware/validation');
-
-const router = Router();
-
-router.get('/users/:id', async (req, res, next) => {
-  try {
-    const user = await getUserById(req.params.id);
-    res.json(user);
-  } catch (error) {
-    next(error);
-  }
-});
-
-module.exports = router;
+Production build:
+```bash
+npm start
 ```
 
-## Scripts
+The API will be available at `http://localhost:3000`
 
-- `npm run dev` - Start development server with hot-reload
-- `npm start` - Start production server
-- `npm test` - Run test suite
-- `npm run lint` - Run ESLint
+## API Endpoints
+
+- `GET /health` - Server health check
+- `GET /api/users` - List all users
+- `POST /api/users` - Create new user
+
+## Project Structure
+
+```
+src/
+├── routes/
+├── middleware/
+├── controllers/
+└── utils/
+```
 
 ## License
 
