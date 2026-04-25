@@ -1,21 +1,15 @@
 # express-api-starter
 
-A lightweight, production-ready Express.js API template with built-in middleware, error handling, and environment configuration.
+A minimal, production-ready Express.js API template with built-in error handling, request validation, and environment configuration.
 
 ## Features
 
-- Express.js server setup with best practices
-- Environment variable management with dotenv
-- CORS and request logging middleware
-- Global error handling middleware
-- Health check endpoint
-- Request validation utilities
-- Modular route structure
-
-## Prerequisites
-
-- Node.js 16+
-- npm or yarn
+- Express.js server with middleware setup
+- Environment variable configuration
+- Request validation and error handling
+- Structured routing and controllers
+- CORS and security headers enabled
+- Winston logger integration
 
 ## Installation
 
@@ -27,42 +21,33 @@ npm install
 
 ## Setup
 
-1. Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
+Create a `.env` file in the root directory:
 
-2. Update environment variables in `.env`
+```
+PORT=3000
+NODE_ENV=development
+LOG_LEVEL=info
+```
 
 ## Usage
 
 Start the development server:
+
 ```bash
 npm run dev
 ```
 
-Production build:
+Make a request to the API:
+
 ```bash
-npm start
+curl http://localhost:3000/api/health
 ```
 
-The API will be available at `http://localhost:3000`
+## Scripts
 
-## API Endpoints
-
-- `GET /health` - Server health check
-- `GET /api/users` - List all users
-- `POST /api/users` - Create new user
-
-## Project Structure
-
-```
-src/
-├── routes/
-├── middleware/
-├── controllers/
-└── utils/
-```
+- `npm run dev` - Start with nodemon
+- `npm start` - Start production server
+- `npm test` - Run test suite
 
 ## License
 
