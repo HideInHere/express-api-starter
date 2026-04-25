@@ -5,7 +5,7 @@ const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   
   if (!token) {
-    return next(new UnauthorizedError('Missing authorization token'));
+    return next(new UnauthorizedError('Missing auth token'));
   }
 
   try {
@@ -23,29 +23,28 @@ const verifyToken = (req, res, next) => {
 const requireRole = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return next(new UnauthorizedError('Authentication required'));
+      return next(new UnauthorizedError('User not authenticated'));
     }
 
     if (!roles.includes(req.user.role)) {
-      return next(new ForbiddenError(`Role required: ${roles.join(', ')}`));
+      return next(new ForbiddenError(`Requires one of: ${roles.join(', ')}`));
     }
 
     next();
   };
 };
 
-const optionalAuth = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  
-  if (token) {
-    try {
-      req.user = jwt.verify(token, process.env.JWT_SECRET);
-    } catch {
-      req.user = null;
+const requirePermission = (permission) => {
+  return (req, res, next) => {
+    if (!req.user?.permissions?.includes(permission)) {
+      return next(new ForbiddenError(`Missing permission: ${permission}`));
     }
-  }
-  
-  next();
+    next();
+  };
 };
 
-module.exports = { verifyToken, requireRole, optionalAuth };
+module.exports = {
+  verifyToken,
+  requireRole,
+  requirePermission,
+};
