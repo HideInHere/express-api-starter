@@ -1,15 +1,15 @@
 # express-api-starter
 
-A minimal, production-ready REST API starter template built with Node.js and Express. Includes request validation, error handling, and environment configuration out of the box.
+A lightweight, production-ready starter template for building RESTful APIs with Node.js and Express. Includes essential middleware, error handling, and a structured project layout.
 
 ## Features
 
-- Express.js server with async/await support
-- Request validation middleware
+- Express.js setup with common middleware
 - Centralized error handling
-- Environment configuration (.env support)
-- CORS enabled
-- Request logging
+- Environment-based configuration
+- Request validation and sanitization
+- CORS and rate limiting configured
+- Docker support included
 
 ## Installation
 
@@ -17,36 +17,36 @@ A minimal, production-ready REST API starter template built with Node.js and Exp
 git clone https://github.com/yourusername/express-api-starter.git
 cd express-api-starter
 npm install
+cp .env.example .env
 ```
 
-## Setup
-
-Create a `.env` file in the root directory:
-
-```
-PORT=3000
-NODE_ENV=development
-```
-
-## Running
+## Quick Start
 
 ```bash
-npm start          # Production
-npm run dev        # Development with hot reload
-npm test           # Run tests
+npm run dev
 ```
 
-## Usage Example
+The API will be available at `http://localhost:3000`
+
+## Example Usage
 
 ```javascript
-const express = require('express');
-const app = require('./src/app');
+const app = require('./app');
 
 app.get('/api/users/:id', (req, res) => {
   res.json({ id: req.params.id, name: 'John Doe' });
 });
+```
 
-app.listen(process.env.PORT || 3000);
+## Project Structure
+
+```
+src/
+├── routes/
+├── middleware/
+├── controllers/
+├── utils/
+└── server.js
 ```
 
 ## License
