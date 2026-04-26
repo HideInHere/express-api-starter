@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
-const { UnauthorizedError, ForbiddenError } = require('./errors');
+const { AppError } = require('../utils/errors');
 
-const verifyToken = (req, res, next) => {
+const authMiddleware = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   
   if (!token) {
-    return next(new UnauthorizedError('No token provided'));
+    return next(new AppError('No token provided', 401));
   }
 
   try {
@@ -14,24 +14,10 @@ const verifyToken = (req, res, next) => {
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
-      return next(new UnauthorizedError('Token expired'));
+      return next(new AppError('Token expired', 401));
     }
-    next(new UnauthorizedError('Invalid token'));
+    next(new AppError('Invalid token', 401));
   }
-};
-
-const requireRole = (allowedRoles) => {
-  return (req, res, next) => {
-    if (!req.user) {
-      return next(new UnauthorizedError('User not authenticated'));
-    }
-
-    if (!allowedRoles.includes(req.user.role)) {
-      return next(new ForbiddenError(`Requires one of: ${allowedRoles.join(', ')}`));
-    }
-
-    next();
-  };
 };
 
 const optionalAuth = (req, res, next) => {
@@ -40,12 +26,12 @@ const optionalAuth = (req, res, next) => {
   if (token) {
     try {
       req.user = jwt.verify(token, process.env.JWT_SECRET);
-    } catch {
-      // silently fail, user stays unauthenticated
+    } catch (err) {
+      // silently fail, user remains undefined
     }
   }
   
   next();
 };
 
-module.exports = { verifyToken, requireRole, optionalAuth };
+module.exports = { authMiddleware, optionalAuth };
