@@ -3,7 +3,7 @@ const { UnauthorizedError, ForbiddenError } = require('../errors');
 
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
-
+  
   if (!token) {
     return next(new UnauthorizedError('No token provided'));
   }
@@ -13,9 +13,6 @@ const verifyToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
-    if (err.name === 'TokenExpiredError') {
-      return next(new UnauthorizedError('Token expired'));
-    }
     next(new UnauthorizedError('Invalid token'));
   }
 };
@@ -27,29 +24,29 @@ const requireRole = (roles) => {
     }
 
     if (!roles.includes(req.user.role)) {
-      return next(
-        new ForbiddenError(`Requires one of: ${roles.join(', ')}`)
-      );
+      return next(new ForbiddenError(`Required role: ${roles.join(' or ')}`));
     }
 
     next();
   };
 };
 
-const rateLimitByUser = (req, res, next) => {
-  const key = `rate:${req.user?.id || req.ip}`;
-  const count = req.app.locals.cache?.get(key) || 0;
-
-  if (count > 100) {
-    return res.status(429).json({ error: 'Too many requests' });
+const optionalAuth = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (token) {
+    try {
+      req.user = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      // Silently ignore invalid tokens for optional auth
+    }
   }
-
-  req.app.locals.cache?.set(key, count + 1, 'EX', 60);
+  
   next();
 };
 
 module.exports = {
   verifyToken,
   requireRole,
-  rateLimitByUser,
+  optionalAuth
 };
