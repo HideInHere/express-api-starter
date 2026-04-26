@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
-const { UnauthorizedError, ForbiddenError } = require('../errors');
+const { UnauthorizedError, ForbiddenError } = require('./errors');
 
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   
   if (!token) {
-    return next(new UnauthorizedError('Missing auth token'));
+    return next(new UnauthorizedError('No token provided'));
   }
 
   try {
@@ -20,31 +20,32 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-const requireRole = (...roles) => {
+const requireRole = (allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
       return next(new UnauthorizedError('User not authenticated'));
     }
 
-    if (!roles.includes(req.user.role)) {
-      return next(new ForbiddenError(`Requires one of: ${roles.join(', ')}`));
+    if (!allowedRoles.includes(req.user.role)) {
+      return next(new ForbiddenError(`Role ${req.user.role} not permitted`));
     }
 
     next();
   };
 };
 
-const requirePermission = (permission) => {
-  return (req, res, next) => {
-    if (!req.user?.permissions?.includes(permission)) {
-      return next(new ForbiddenError(`Missing permission: ${permission}`));
+const optionalAuth = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (token) {
+    try {
+      req.user = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      // silently ignore invalid tokens in optional auth
     }
-    next();
-  };
+  }
+  
+  next();
 };
 
-module.exports = {
-  verifyToken,
-  requireRole,
-  requirePermission,
-};
+module.exports = { verifyToken, requireRole, optionalAuth };
