@@ -1,19 +1,15 @@
 # express-api-starter
 
-A lightweight Express.js REST API boilerplate with best practices for building scalable Node.js applications. Includes middleware setup, error handling, and environment configuration.
+A minimal, production-ready REST API starter template built with Node.js and Express. Includes request validation, error handling, and environment configuration out of the box.
 
 ## Features
 
-- Express 4.x server with modern middleware
-- Environment configuration with dotenv
+- Express.js server with async/await support
+- Request validation middleware
 - Centralized error handling
-- CORS and security headers enabled
-- Request logging with morgan
-- Example routes and controllers structure
-
-## Prerequisites
-
-- Node.js 16+ and npm
+- Environment configuration (.env support)
+- CORS enabled
+- Request logging
 
 ## Installation
 
@@ -25,46 +21,32 @@ npm install
 
 ## Setup
 
-1. Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
+Create a `.env` file in the root directory:
 
-2. Configure environment variables:
 ```
 PORT=3000
 NODE_ENV=development
 ```
 
-## Usage
-
-Start the development server:
-```bash
-npm run dev
-```
-
-The API will be available at `http://localhost:3000`
-
-### Example Request
+## Running
 
 ```bash
-curl -X GET http://localhost:3000/api/health
+npm start          # Production
+npm run dev        # Development with hot reload
+npm test           # Run tests
 ```
 
-Response:
-```json
-{"status": "ok", "timestamp": "2024-01-15T10:30:00Z"}
-```
+## Usage Example
 
-## Project Structure
+```javascript
+const express = require('express');
+const app = require('./src/app');
 
-```
-src/
-├── controllers/
-├── routes/
-├── middleware/
-├── utils/
-└── server.js
+app.get('/api/users/:id', (req, res) => {
+  res.json({ id: req.params.id, name: 'John Doe' });
+});
+
+app.listen(process.env.PORT || 3000);
 ```
 
 ## License
