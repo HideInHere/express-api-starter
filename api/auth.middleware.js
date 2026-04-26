@@ -2,13 +2,11 @@ const jwt = require('jsonwebtoken');
 const { UnauthorizedError, ForbiddenError } = require('../errors');
 
 const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader?.startsWith('Bearer ')) {
-    return next(new UnauthorizedError('Missing or invalid authorization header'));
-  }
+  const token = req.headers.authorization?.split(' ')[1];
 
-  const token = authHeader.slice(7);
+  if (!token) {
+    return next(new UnauthorizedError('No token provided'));
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -22,36 +20,36 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-const requireRole = (...allowedRoles) => (req, res, next) => {
-  if (!req.user) {
-    return next(new UnauthorizedError('User not authenticated'));
+const requireRole = (roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return next(new UnauthorizedError('User not authenticated'));
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new ForbiddenError(`Requires one of: ${roles.join(', ')}`)
+      );
+    }
+
+    next();
+  };
+};
+
+const rateLimitByUser = (req, res, next) => {
+  const key = `rate:${req.user?.id || req.ip}`;
+  const count = req.app.locals.cache?.get(key) || 0;
+
+  if (count > 100) {
+    return res.status(429).json({ error: 'Too many requests' });
   }
 
-  if (!allowedRoles.includes(req.user.role)) {
-    return next(new ForbiddenError(`Role ${req.user.role} not permitted`));
-  }
-
+  req.app.locals.cache?.set(key, count + 1, 'EX', 60);
   next();
 };
 
-const refreshToken = (req, res, next) => {
-  const { refreshToken } = req.body;
-
-  if (!refreshToken) {
-    return next(new UnauthorizedError('Refresh token required'));
-  }
-
-  try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    const newToken = jwt.sign(
-      { id: decoded.id, email: decoded.email, role: decoded.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '15m' }
-    );
-    res.json({ token: newToken });
-  } catch {
-    next(new UnauthorizedError('Invalid refresh token'));
-  }
+module.exports = {
+  verifyToken,
+  requireRole,
+  rateLimitByUser,
 };
-
-module.exports = { verifyToken, requireRole, refreshToken };
